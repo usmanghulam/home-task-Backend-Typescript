@@ -4,17 +4,18 @@ import { getContractById, getContractsListByProfileId } from '../services/contra
 
 export const getUserContractById = async (req: CustomRequest, res: Response) => {
   const { id } = req.params;
-  const profileId = req.profile?.id ?? '';
-  const contract = await getContractById(parseInt(id), profileId);
+  
+  if (!id || isNaN(Number(id))) {
+    return res.status(400).json({ error: 'Invalid id' });
+  }
+
+  const contract = await getContractById(parseInt(id), req.profile?.id);
   if (!contract) return res.status(404).json({ message: 'We apologize, but there is no contract available against your profile at this time.' }).end();
   res.json(contract);
 };
 
 export const getUserContractList = async (req: CustomRequest, res: Response) => {
-  const profileId = req.profile?.id ?? '';
-  if (profileId) {
-    const contract = await getContractsListByProfileId(profileId);
-    if (!contract) return res.status(404).json({ message: 'We apologize, but there are no contract available against your profile at this time.' }).end();
-    res.json(contract);
-  }
+  const contract = await getContractsListByProfileId(req.profile.id);
+  if (!contract) return res.status(404).json({ message: 'We apologize, but there are no contracts available against your profile at this time.' }).end();
+  res.json(contract);
 };

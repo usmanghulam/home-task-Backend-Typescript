@@ -27,18 +27,24 @@ export const payForJobService = async (jobId: number, clientId: number): Promise
       const job = await Job.findByPk(jobId, {
         include: [{
           model: Contract,
-          include: [{ model: Profile, as: 'Client' }, { model: Profile, as: 'Contractor' }]
+          include: [
+            { model: Profile, as: 'Client' },
+            { model: Profile, as: 'Contractor' }
+          ]
         }],
         transaction: trManager,
         lock: trManager.LOCK.UPDATE
       }) as any;
 
-      if (!job || !job.Contract || job.paid) return null;
+      if (!job) throw new Error('Job Not Found');
+      if (job.paid) throw new Error('Job Already Paid');
+      if (!job.Contract) throw new Error('Contract Not Found');
 
       const client = job.Contract.Client;
       const contractor = job.Contract.Contractor;
 
-      if (!client || !contractor || client.id !== clientId) return null;
+      if (!client || !contractor) throw new Error('Client or Contractor Not Found');
+      if (client.id !== clientId) throw new Error('Unauthorized Client');
 
       if (client.balance < job.price) throw new Error('Insufficient balance');
 
@@ -49,8 +55,8 @@ export const payForJobService = async (jobId: number, clientId: number): Promise
       return job;
     });
   } catch (error) {
-    if (error instanceof Error) throw new Error(error.message);
-    else throw new Error('Internel Server Error!');
+    if (error instanceof Error) throw error;
+    throw new Error('Internal Server Error');
   }
 };
 

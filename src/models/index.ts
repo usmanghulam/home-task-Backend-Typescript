@@ -1,4 +1,4 @@
-import { Model, DataTypes, BelongsToManyGetAssociationsMixin, Association } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database';
 
 class Profile extends Model {
@@ -10,12 +10,6 @@ class Profile extends Model {
   public type!: 'client' | 'contractor';
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
-
-  public getContracts!: BelongsToManyGetAssociationsMixin<Contract>;
-
-  public static associations: {
-    contracts: Association<Profile, Contract>;
-  };
 }
 
 Profile.init(
